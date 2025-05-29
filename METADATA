@@ -1,0 +1,16 @@
+name: "clvk"
+description:
+    "Implementation of OpenCL 3.0 on Vulkan"
+
+third_party {
+homepage: "https://github.com/kpet/clvk"
+  identifier {
+    type: "Git"
+    value: "https://github.com/kpet/clvk"
+    primary_source: true
+    version: "a91d6a8092592f99971e6cd68fed8ecd57f19700"
+  }
+  version: "a91d6a8092592f99971e6cd68fed8ecd57f19700"
+  last_upgrade_date { year: 2025 month: 4 day: 15 }
+  license_type: NOTICE
+}
