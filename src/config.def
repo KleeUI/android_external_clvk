@@ -46,6 +46,8 @@ OPTION(std::string, llvmspirv_bin, DEFAULT_LLVMSPIRV_BINARY_PATH)
 OPTION(uint32_t, force_subgroup_size, 0u) // 0 meaning not forced
 OPTION(uint32_t, preferred_subgroup_size, 0u) // 0 meaning no preference
 
+OPTION(uint32_t, max_compute_units, 1u)
+
 //
 // Command execution
 //
@@ -70,10 +72,10 @@ OPTION(std::string, device_extensions_masked, "")
 //
 // Logging
 //
-OPTION(uint32_t, log, 0u)
-OPTION(bool, log_colour, false)
-OPTION(std::string, log_dest, "")
-OPTION(std::string, log_groups, "")
+EARLY_OPTION(uint32_t, log, 0u)
+EARLY_OPTION(bool, log_colour, false)
+EARLY_OPTION(std::string, log_dest, "")
+EARLY_OPTION(std::string, log_groups, "")
 
 //
 // Debug

@@ -35,6 +35,7 @@ using cvk_command_queue_holder = refcounted_holder<cvk_command_queue>;
 struct cvk_command_group {
     std::deque<cvk_command*> commands;
     cl_int execute_cmds();
+    void execute_cmds_in_executor();
 };
 
 struct cvk_executor_thread {
@@ -538,9 +539,14 @@ struct cvk_rectangle_copier {
                          const size_t* region, size_t a_row_pitch,
                          size_t a_slice_pitch, size_t b_row_pitch,
                          size_t b_slice_pitch, size_t elem_size)
-        : m_a_row_pitch(a_row_pitch), m_a_slice_pitch(a_slice_pitch),
-          m_b_row_pitch(b_row_pitch), m_b_slice_pitch(b_slice_pitch),
-          m_elem_size(elem_size) {
+        : m_elem_size(elem_size) {
+
+        m_a_row_pitch = initialize_pitch(a_row_pitch, region[0]);
+        m_b_row_pitch = initialize_pitch(b_row_pitch, region[0]);
+        m_a_slice_pitch =
+            initialize_pitch(a_slice_pitch, m_a_row_pitch * region[1]);
+        m_b_slice_pitch =
+            initialize_pitch(b_slice_pitch, m_b_row_pitch * region[1]);
 
         m_a_origin[0] = a_origin[0];
         m_a_origin[1] = a_origin[1];
@@ -567,6 +573,10 @@ struct cvk_rectangle_copier {
     void do_copy(direction dir, void* src_base, void* dst_base);
 
 private:
+    size_t initialize_pitch(size_t default_pitch, size_t region_pitch) {
+        return default_pitch == 0 ? region_pitch : default_pitch;
+    }
+
     std::array<size_t, 3> m_a_origin;
     size_t m_a_row_pitch;
     size_t m_a_slice_pitch;
@@ -695,18 +705,27 @@ struct cvk_command_batchable : public cvk_command {
     CHECK_RETURN cl_int do_action() override;
     CHECK_RETURN virtual cl_int do_post_action() { return CL_SUCCESS; }
 
-    CHECK_RETURN cl_int set_profiling_info_end(cl_ulong sync_dev,
-                                               cl_ulong sync_host) {
-        cl_ulong start, end;
-        auto perr = get_timestamp_query_results(&start, &end);
+    CHECK_RETURN cl_int set_profiling_info_end() {
+        // If it has already been set, don't override it
+        if (m_event->get_profiling_info(CL_PROFILING_COMMAND_END) != 0) {
+            return CL_SUCCESS;
+        }
+        cl_ulong start_dev, end_dev;
+        cl_int perr = get_timestamp_query_results(&start_dev, &end_dev);
         if (perr != CL_COMPLETE) {
             return perr;
         }
-        start =
-            m_queue->device()->device_timer_to_host(start, sync_dev, sync_host);
-        end = m_queue->device()->device_timer_to_host(end, sync_dev, sync_host);
-        m_event->set_profiling_info(CL_PROFILING_COMMAND_START, start);
-        m_event->set_profiling_info(CL_PROFILING_COMMAND_END, end);
+        cl_ulong start_host, end_host;
+        perr = m_queue->device()->device_timer_to_host(start_dev, start_host);
+        if (perr != CL_SUCCESS) {
+            return perr;
+        }
+        perr = m_queue->device()->device_timer_to_host(end_dev, end_host);
+        if (perr != CL_SUCCESS) {
+            return perr;
+        }
+        m_event->set_profiling_info(CL_PROFILING_COMMAND_START, start_host);
+        m_event->set_profiling_info(CL_PROFILING_COMMAND_END, end_host);
         return CL_SUCCESS;
     }
 
@@ -720,12 +739,10 @@ struct cvk_command_batchable : public cvk_command {
             pinfo == CL_PROFILING_COMMAND_SUBMIT) {
             return cvk_command::set_profiling_info(pinfo);
         } else if (pinfo == CL_PROFILING_COMMAND_START) {
-            return m_queue->device()->get_device_host_timer(&m_sync_dev,
-                                                            &m_sync_host);
+            return CL_SUCCESS;
         } else {
             CVK_ASSERT(pinfo == CL_PROFILING_COMMAND_END);
-            CVK_ASSERT(m_sync_dev != 0 && m_sync_host != 0);
-            return set_profiling_info_end(m_sync_dev, m_sync_host);
+            return set_profiling_info_end();
         }
     }
 
@@ -736,8 +753,6 @@ private:
     static const int NUM_POOL_QUERIES_PER_COMMAND = 2;
     static const int POOL_QUERY_CMD_START = 0;
     static const int POOL_QUERY_CMD_END = 1;
-
-    cl_ulong m_sync_dev{}, m_sync_host{};
 };
 
 struct cvk_ndrange {
@@ -865,14 +880,12 @@ struct cvk_command_batch : public cvk_command {
         cl_int status = cvk_command::set_profiling_info(pinfo);
         if (m_queue->profiling_on_device()) {
             if (pinfo == CL_PROFILING_COMMAND_START) {
-                return m_queue->device()->get_device_host_timer(&m_sync_dev,
-                                                                &m_sync_host);
+                return status;
             } else {
                 for (auto& cmd : m_commands) {
                     cl_int err;
                     if (pinfo == CL_PROFILING_COMMAND_END) {
-                        err = cmd->set_profiling_info_end(m_sync_dev,
-                                                          m_sync_host);
+                        err = cmd->set_profiling_info_end();
                     } else {
                         err = cmd->set_profiling_info(pinfo);
                     }
@@ -900,7 +913,6 @@ struct cvk_command_batch : public cvk_command {
 private:
     std::vector<std::unique_ptr<cvk_command_batchable>> m_commands;
     std::unique_ptr<cvk_command_buffer> m_command_buffer;
-    cl_ulong m_sync_dev, m_sync_host;
 };
 
 struct cvk_command_map_buffer final : public cvk_command_buffer_base_region {
@@ -1031,11 +1043,16 @@ struct cvk_command_map_image final : public cvk_command {
                           const std::array<size_t, 3>& origin,
                           const std::array<size_t, 3>& region,
                           cl_map_flags flags, bool update_host_ptr = false)
-        : cvk_command(CL_COMMAND_MAP_IMAGE, q), m_image(img), m_origin(origin),
+        : cvk_command(CL_COMMAND_MAP_IMAGE, q), m_image(img),
+          m_mapping_needs_releasing_on_destruction(false), m_origin(origin),
           m_region(region), m_flags(flags),
           m_update_host_ptr(update_host_ptr &&
                             m_image->has_flags(CL_MEM_USE_HOST_PTR)) {}
-
+    ~cvk_command_map_image() {
+        if (m_mapping_needs_releasing_on_destruction) {
+            m_image->cleanup_mapping(m_mapping);
+        }
+    }
     CHECK_RETURN cl_int build(void** map_ptr);
     CHECK_RETURN cl_int do_action() override final;
     cvk_buffer* map_buffer() { return m_mapping.buffer; }
@@ -1065,6 +1082,7 @@ private:
 
     cvk_image_holder m_image;
     cvk_image_mapping m_mapping;
+    bool m_mapping_needs_releasing_on_destruction;
     std::array<size_t, 3> m_origin;
     std::array<size_t, 3> m_region;
     cl_map_flags m_flags;

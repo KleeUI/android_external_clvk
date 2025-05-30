@@ -67,10 +67,6 @@ struct cvk_device : public _cl_device_id,
             m_type = CL_DEVICE_TYPE_ACCELERATOR;
             break;
         }
-
-        m_clvk_properties = create_cvk_device_properties(
-            m_properties.deviceName, m_properties.vendorID,
-            m_properties.deviceID);
     }
 
     static cvk_device* create(cvk_platform* platform, VkInstance instance,
@@ -438,7 +434,10 @@ struct cvk_device : public _cl_device_id,
 
     bool supports_fp16() const { return m_has_fp16_support; }
 
-    bool supports_fp64() const { return m_has_fp64_support; }
+    // TODO(kpet): support FP64 (clspv has very little support)
+    bool supports_fp64() const {
+        return 0 && m_features.features.shaderFloat64;
+    }
 
     bool supports_int8() const { return m_has_int8_support; }
 
@@ -615,8 +614,7 @@ struct cvk_device : public _cl_device_id,
 
     CHECK_RETURN cl_int get_device_host_timer(cl_ulong* dev_ts,
                                               cl_ulong* host_ts) const;
-    cl_ulong device_timer_to_host(cl_ulong dev, cl_ulong sync_dev,
-                                  cl_ulong sync_host) const;
+    cl_int device_timer_to_host(cl_ulong dev, cl_ulong& host);
 
     uint64_t timestamp_to_ns(uint64_t ts) const {
         double ns_per_tick = vulkan_limits().timestampPeriod;
@@ -800,7 +798,6 @@ private:
 
     bool m_has_timer_support{};
     bool m_has_fp16_support{};
-    bool m_has_fp64_support{};
     bool m_has_int8_support{};
     bool m_has_subgroups_support{};
     bool m_has_subgroup_size_selection{};
@@ -814,6 +811,9 @@ private:
     bool m_physical_addressing;
 
     cl_uint m_preferred_subgroup_size{};
+
+    cl_ulong m_sync_host{};
+    cl_ulong m_sync_dev{};
 
     spv_target_env m_vulkan_spirv_env;
 

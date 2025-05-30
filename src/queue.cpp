@@ -348,6 +348,13 @@ cl_int cvk_command_queue::wait_for_events(cl_uint num_events,
     return ret;
 }
 
+void cvk_command_group::execute_cmds_in_executor() {
+    CVK_ASSERT(commands.size() > 0);
+    cvk_command_queue_holder queue = commands.front()->queue();
+    execute_cmds();
+    queue->group_completed();
+}
+
 cl_int cvk_command_group::execute_cmds() {
     TRACE_FUNCTION();
     cl_int global_status = CL_SUCCESS;
@@ -466,14 +473,7 @@ void cvk_executor_thread::executor() {
         cvk_debug_fn("received group %p", group.get());
 
         lock.unlock();
-
-        CVK_ASSERT(group->commands.size() > 0);
-        cvk_command_queue_holder queue = group->commands.front()->queue();
-
-        group->execute_cmds();
-
-        queue->group_completed();
-
+        group->execute_cmds_in_executor();
         lock.lock();
     }
 }
@@ -1655,6 +1655,7 @@ cl_int cvk_command_map_image::build(void** map_ptr) {
         cvk_error("cannot find or create a mapping");
         return CL_OUT_OF_RESOURCES;
     }
+    m_mapping_needs_releasing_on_destruction = true;
 
     *map_ptr = m_mapping.ptr;
 
@@ -1698,6 +1699,8 @@ cl_int cvk_command_map_image::do_action() {
             }
         }
     }
+
+    m_mapping_needs_releasing_on_destruction = false;
 
     // TODO invalidate buffer if the memory isn't coherent
 

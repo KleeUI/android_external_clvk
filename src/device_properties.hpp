@@ -26,7 +26,9 @@
 struct cvk_device_properties {
     virtual std::string vendor() const { return "Unknown vendor"; }
     virtual cl_ulong get_global_mem_cache_size() const { return 0; }
-    virtual cl_ulong get_num_compute_units() const { return 1; }
+    virtual cl_ulong get_num_compute_units() const {
+        return config.max_compute_units();
+    }
 
     virtual cl_uint get_max_cmd_batch_size() const {
         return config.max_cmd_batch_size();
@@ -72,6 +74,6 @@ struct cvk_device_properties {
     virtual ~cvk_device_properties() {}
 };
 
-std::unique_ptr<cvk_device_properties>
-create_cvk_device_properties(const char* name, const uint32_t vendorID,
-                             const uint32_t deviceID);
+std::unique_ptr<cvk_device_properties> create_cvk_device_properties(
+    const char* name, const uint32_t vendorID, const uint32_t deviceID,
+    const uint32_t driverVersion, const VkDriverId driverId);

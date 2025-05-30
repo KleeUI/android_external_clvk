@@ -620,25 +620,30 @@ cl_int CLVK_API_CALL clGetDeviceInfo(cl_device_id dev,
         copy_ptr = &val_ulong;
         size_ret = sizeof(val_ulong);
         break;
+    // FIXME can we do better for vector width queries?
     case CL_DEVICE_PREFERRED_VECTOR_WIDTH_CHAR:
     case CL_DEVICE_PREFERRED_VECTOR_WIDTH_SHORT:
     case CL_DEVICE_PREFERRED_VECTOR_WIDTH_INT:
     case CL_DEVICE_PREFERRED_VECTOR_WIDTH_LONG:
     case CL_DEVICE_PREFERRED_VECTOR_WIDTH_FLOAT:
-    case CL_DEVICE_PREFERRED_VECTOR_WIDTH_HALF:
     case CL_DEVICE_NATIVE_VECTOR_WIDTH_CHAR:
     case CL_DEVICE_NATIVE_VECTOR_WIDTH_SHORT:
     case CL_DEVICE_NATIVE_VECTOR_WIDTH_INT:
     case CL_DEVICE_NATIVE_VECTOR_WIDTH_LONG:
     case CL_DEVICE_NATIVE_VECTOR_WIDTH_FLOAT:
+        val_uint = 1;
+        copy_ptr = &val_uint;
+        size_ret = sizeof(val_uint);
+        break;
+    case CL_DEVICE_PREFERRED_VECTOR_WIDTH_HALF:
     case CL_DEVICE_NATIVE_VECTOR_WIDTH_HALF:
-        val_uint = 1; // FIXME can we do better?
+        val_uint = device->supports_fp16() ? 1 : 0;
         copy_ptr = &val_uint;
         size_ret = sizeof(val_uint);
         break;
     case CL_DEVICE_PREFERRED_VECTOR_WIDTH_DOUBLE:
     case CL_DEVICE_NATIVE_VECTOR_WIDTH_DOUBLE:
-        val_uint = 0;
+        val_uint = device->supports_fp64() ? 1 : 0;
         copy_ptr = &val_uint;
         size_ret = sizeof(val_uint);
         break;
@@ -2538,10 +2543,12 @@ cl_int CLVK_API_CALL clGetProgramInfo(cl_program prog,
         return CL_INVALID_PROGRAM;
     }
 
-    // TODO CL_INVALID_PROGRAM_EXECUTABLE if param_name is
-    // CL_PROGRAM_NUM_KERNELS or CL_PROGRAM_KERNEL_NAMES and a successful
-    // program executable has not been built for at least one device in the list
-    // of devices associated with program.
+    bool program_built_once = false;
+    for (auto dev : program->devices()) {
+        if (program->build_status(dev) == CL_BUILD_SUCCESS) {
+            program_built_once = true;
+        }
+    }
 
     switch (param_name) {
     case CL_PROGRAM_NUM_DEVICES:
@@ -2567,6 +2574,9 @@ cl_int CLVK_API_CALL clGetProgramInfo(cl_program prog,
         ret_size = sizeof(cl_device_id) * val_devices.size();
         break;
     case CL_PROGRAM_NUM_KERNELS:
+        if (!program_built_once) {
+            return CL_INVALID_PROGRAM_EXECUTABLE;
+        }
         val_sizet = program->num_kernels();
         copy_ptr = &val_sizet;
         ret_size = sizeof(val_sizet);
@@ -2576,6 +2586,9 @@ cl_int CLVK_API_CALL clGetProgramInfo(cl_program prog,
         ret_size = program->source().size() + 1;
         break;
     case CL_PROGRAM_KERNEL_NAMES: {
+        if (!program_built_once) {
+            return CL_INVALID_PROGRAM_EXECUTABLE;
+        }
         val_string = "";
         std::string sep = "";
         for (auto kname : program->kernel_names()) {
@@ -2614,6 +2627,9 @@ cl_int CLVK_API_CALL clGetProgramInfo(cl_program prog,
         break;
     case CL_PROGRAM_SCOPE_GLOBAL_CTORS_PRESENT:
     case CL_PROGRAM_SCOPE_GLOBAL_DTORS_PRESENT:
+        if (!program_built_once) {
+            return CL_INVALID_PROGRAM_EXECUTABLE;
+        }
         val_bool = CL_FALSE;
         copy_ptr = &val_bool;
         ret_size = sizeof(val_bool);
@@ -4063,6 +4079,11 @@ cl_int CLVK_API_CALL clEnqueueNDRangeKernel(
         "num_events_in_wait_list = %u, event_wait_list = %p, event = %p",
         command_queue, kernel, work_dim, num_events_in_wait_list,
         event_wait_list, event);
+
+    static const size_t null_global_work_size[3] = {0};
+    if (global_work_size == nullptr) {
+        global_work_size = null_global_work_size;
+    }
 
     cvk_ndrange ndrange(work_dim, global_work_offset, global_work_size,
                         local_work_size);

@@ -117,6 +117,9 @@ void cvk_device::init_vulkan_properties(VkInstance instance) {
 }
 
 void cvk_device::init_clvk_runtime_behaviors() {
+    m_clvk_properties = create_cvk_device_properties(
+        m_properties.deviceName, m_properties.vendorID, m_properties.deviceID,
+        m_properties.driverVersion, m_driver_properties.driverID);
 #define SET_DEVICE_PROPERTY(option, print)                                     \
     do {                                                                       \
         if (config.option.set) {                                               \
@@ -661,6 +664,10 @@ void cvk_device::build_extension_ils_list() {
         m_extensions.push_back(MAKE_NAME_VERSION(1, 0, 0, "cl_khr_fp16"));
     }
 
+    if (supports_fp64()) {
+        m_extensions.push_back(MAKE_NAME_VERSION(1, 0, 0, "cl_khr_fp64"));
+    }
+
     // Enable 8-bit integer support if possible
     if ((is_vulkan_extension_enabled(VK_KHR_8BIT_STORAGE_EXTENSION_NAME) &&
          m_features_8bit_storage.storageBuffer8BitAccess) &&
@@ -729,6 +736,10 @@ void cvk_device::build_extension_ils_list() {
         split_string(config.device_extensions_masked(), ',');
     for (auto& config_extension_masked : config_extensions_masked) {
         for (auto it = m_extensions.begin(); it != m_extensions.end(); it++) {
+            if (strcmp(config_extension_masked.c_str(),
+                       CL_KHR_FP16_EXTENSION_NAME) == 0) {
+                m_has_fp16_support = false;
+            }
             if (strcmp(config_extension_masked.c_str(), it->name) == 0) {
                 m_extensions.erase(it);
                 break;
@@ -794,8 +805,7 @@ void cvk_device::build_extension_ils_list() {
         m_opencl_c_features.push_back(
             MAKE_NAME_VERSION(3, 0, 0, "__opencl_c_int64"));
     }
-    if (m_features.features.shaderFloat64) {
-        m_has_fp64_support = true;
+    if (supports_fp64()) {
         m_opencl_c_features.push_back(
             MAKE_NAME_VERSION(3, 0, 0, "__opencl_c_fp64"));
     }
@@ -1146,9 +1156,9 @@ bool cvk_device::init(VkInstance instance) {
         return false;
     }
 
-    init_clvk_runtime_behaviors();
-
     init_vulkan_properties(instance);
+
+    init_clvk_runtime_behaviors();
 
     init_driver_behaviors();
 
@@ -1332,11 +1342,17 @@ cl_int cvk_device::get_device_host_timer(cl_ulong* device_timestamp,
     return CL_SUCCESS;
 }
 
-cl_ulong cvk_device::device_timer_to_host(cl_ulong dev, cl_ulong sync_dev,
-                                          cl_ulong sync_host) const {
-    if (sync_host > sync_dev) {
-        return (sync_host - sync_dev) + dev;
-    } else {
-        return dev - (sync_dev - sync_host);
+cl_int cvk_device::device_timer_to_host(cl_ulong dev, cl_ulong& host) {
+    if (dev > m_sync_dev) {
+        cl_int err = get_device_host_timer(&m_sync_dev, &m_sync_host);
+        if (err != CL_SUCCESS) {
+            return err;
+        }
     }
+    if (m_sync_host > m_sync_dev) {
+        host = (m_sync_host - m_sync_dev) + dev;
+    } else {
+        host = dev - (m_sync_dev - m_sync_host);
+    }
+    return CL_SUCCESS;
 }

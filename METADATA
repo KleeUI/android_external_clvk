@@ -1,16 +1,21 @@
-name: "clvk"
-description:
-    "Implementation of OpenCL 3.0 on Vulkan"
+# This project was upgraded with external_updater.
+# Usage: tools/external_updater/updater.sh update external/clvk
+# For more info, check https://cs.android.com/android/platform/superproject/main/+/main:tools/external_updater/README.md
 
+name: "clvk"
+description: "Implementation of OpenCL 3.0 on Vulkan"
 third_party {
-homepage: "https://github.com/kpet/clvk"
+  license_type: NOTICE
+  last_upgrade_date {
+    year: 2025
+    month: 5
+    day: 30
+  }
+  homepage: "https://github.com/kpet/clvk"
   identifier {
     type: "Git"
     value: "https://github.com/kpet/clvk"
+    version: "f58c57ac0431d1634892e49aac0873d291c29ba1"
     primary_source: true
-    version: "a91d6a8092592f99971e6cd68fed8ecd57f19700"
   }
-  version: "a91d6a8092592f99971e6cd68fed8ecd57f19700"
-  last_upgrade_date { year: 2025 month: 4 day: 15 }
-  license_type: NOTICE
 }
