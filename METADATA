@@ -8,14 +8,14 @@ third_party {
   license_type: NOTICE
   last_upgrade_date {
     year: 2025
-    month: 5
-    day: 30
+    month: 6
+    day: 4
   }
   homepage: "https://github.com/kpet/clvk"
   identifier {
     type: "Git"
     value: "https://github.com/kpet/clvk"
-    version: "f58c57ac0431d1634892e49aac0873d291c29ba1"
+    version: "dcdcfb6bf331d32f6ad1c400e590a6dd19ca85c9"
     primary_source: true
   }
 }
