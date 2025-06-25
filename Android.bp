@@ -149,8 +149,8 @@ cc_test {
 cc_genrule {
     name: "clvk_icd_genrule",
     cmd: "echo /system/$$CC_MULTILIB/libclvk.so > $(out)",
-    srcs: [":libclvk"],
     out: ["clvk.icd"],
+    soc_specific: true,
 }
 
 prebuilt_etc {
