@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<configuration description="Config to run clvk_simple_test">
+    <option name="logcat-on-failure" value="false"/>
+    <target_preparer class="com.android.tradefed.targetprep.RootTargetPreparer"/>
+    <target_preparer class="com.android.compatibility.common.tradefed.targetprep.FilePusher">
+        <option name="cleanup" value="true"/>
+        <option name="push-file" key="clvk_simple_test" value="/data/nativetest64/unrestricted/clvk_simple_test"/>
+    </target_preparer>
+    <test class="com.android.tradefed.testtype.binary.ExecutableTargetTest">
+        <option name="per-binary-timeout" value="1m"/>
+        <option name="test-command-line" key="clvk_simple_test" value="/data/nativetest64/unrestricted/clvk_simple_test/*/clvk_simple_test"/>
+    </test>
+</configuration>
