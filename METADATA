@@ -9,13 +9,13 @@ third_party {
   last_upgrade_date {
     year: 2025
     month: 9
-    day: 1
+    day: 10
   }
   homepage: "https://github.com/kpet/clvk"
   identifier {
     type: "Git"
     value: "https://github.com/kpet/clvk"
-    version: "15a4052a79b94484e34e3391d36762c4ef8f31b9"
+    version: "803bde03c758e159c1382dbf9ef7b0625abc95bc"
     primary_source: true
   }
 }
