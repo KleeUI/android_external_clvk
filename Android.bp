@@ -140,10 +140,7 @@ cc_test {
         "-DCOMPILER_AVAILABLE=1",
         "-Wno-missing-braces",
     ],
-    shared_libs: [
-        "libclvk",
-        "libz",
-    ],
+    shared_libs: ["libclvk"],
     static_libs: [
         "llvm-project_lib_libLLVMDemangle_a",
         "llvm-project_lib_libLLVMSupport_a",
