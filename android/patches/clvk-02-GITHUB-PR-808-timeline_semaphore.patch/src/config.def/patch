@@ -1,0 +1,14 @@
+diff --git a/src/config.def b/src/config.def
+index f63fa6f..90767a9 100644
+--- a/src/config.def
++++ b/src/config.def
+@@ -29,6 +29,9 @@ OPTION(uint32_t, printf_buffer_size, 1024*1024u)
+ 
+ OPTION(uint32_t, opencl_version, (uint32_t)CL_MAKE_VERSION(3, 0, 0))
+ 
++OPTION(bool, poll_executor, false)
++PROPERTY(bool, poll_main_thread, false)
++
+ OPTION(bool, build_in_separate_thread, false)
+ 
+ OPTION(bool, init_image_at_creation, false)

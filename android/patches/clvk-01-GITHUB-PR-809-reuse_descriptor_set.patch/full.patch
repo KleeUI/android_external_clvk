@@ -1,0 +1,227 @@
+diff --git a/src/config.def b/src/config.def
+index bf54c7b..f63fa6f 100644
+--- a/src/config.def
++++ b/src/config.def
+@@ -80,6 +80,8 @@ PROPERTY(bool, keep_memory_allocations_mapped, false)
+ OPTION(std::set<std::string>, device_extensions, std::set<std::string>())
+ OPTION(std::set<std::string>, device_extensions_masked, std::set<std::string>())
+ 
++PROPERTY(bool, reuse_descriptor_set, false)
++
+ //
+ // Logging
+ //
+diff --git a/src/device.hpp b/src/device.hpp
+index 23006dd..b9fc43c 100644
+--- a/src/device.hpp
++++ b/src/device.hpp
+@@ -723,6 +723,10 @@ struct cvk_device : public _cl_device_id,
+         return m_clvk_properties->keep_memory_allocations_mapped();
+     }
+ 
++    bool reuse_descriptor_set() const {
++        return m_clvk_properties->reuse_descriptor_set();
++    }
++
+ private:
+     std::string version_desc() const {
+         std::string ret = "CLVK on Vulkan v";
+diff --git a/src/device_properties.cpp b/src/device_properties.cpp
+index 18cc834..9ade19e 100644
+--- a/src/device_properties.cpp
++++ b/src/device_properties.cpp
+@@ -27,8 +27,9 @@ struct cvk_device_properties_mali : public cvk_device_properties_virtual {
+     uint32_t max_first_cmd_batch_size() const override final { return 10; }
+     uint32_t max_cmd_group_size() const override final { return 1; }
+ 
+-    cvk_device_properties_mali(const uint32_t deviceID)
+-        : m_deviceID(deviceID) {}
++    cvk_device_properties_mali(const uint32_t deviceID,
++                               const VkDriverId driverID)
++        : m_deviceID(deviceID), m_driverID(driverID) {}
+ 
+     bool non_uniform_decoration_broken() const override final {
+ #define GPU_ID2_ARCH_MAJOR_SHIFT 28
+@@ -38,24 +39,31 @@ struct cvk_device_properties_mali : public cvk_device_properties_virtual {
+         return (m_deviceID & GPU_ID2_ARCH_MAJOR) <= bifrost_arch_major;
+     }
+ 
++    bool reuse_descriptor_set() const override final {
++        return m_driverID == VK_DRIVER_ID_ARM_PROPRIETARY;
++    }
++
+ private:
+     const uint32_t m_deviceID;
++    const VkDriverId m_driverID;
+ };
+ 
+ struct cvk_device_properties_mali_exynos9820
+     : public cvk_device_properties_mali {
+     uint32_t global_mem_cache_size() const override final { return 262144; }
+     uint32_t max_compute_units() const override final { return 12; }
+-    cvk_device_properties_mali_exynos9820(const uint32_t deviceID)
+-        : cvk_device_properties_mali(deviceID) {}
++    cvk_device_properties_mali_exynos9820(const uint32_t deviceID,
++                                          const VkDriverId driverID)
++        : cvk_device_properties_mali(deviceID, driverID) {}
+ };
+ 
+ struct cvk_device_properties_mali_exynos990
+     : public cvk_device_properties_mali {
+     uint32_t global_mem_cache_size() const override final { return 262144; }
+     uint32_t max_compute_units() const override final { return 11; }
+-    cvk_device_properties_mali_exynos990(const uint32_t deviceID)
+-        : cvk_device_properties_mali(deviceID) {}
++    cvk_device_properties_mali_exynos990(const uint32_t deviceID,
++                                         const VkDriverId driverID)
++        : cvk_device_properties_mali(deviceID, driverID) {}
+ };
+ 
+ static bool isMaliDevice(const char* name, const uint32_t vendorID) {
+@@ -270,9 +278,9 @@ std::unique_ptr<cvk_device_properties> create_cvk_device_properties(
+             cvk_warn("Unable to query 'ro.hardware' system property, some "
+                      "device properties will be incorrect.");
+         } else if (strcmp(soc, "exynos9820") == 0) {
+-            RETURN(cvk_device_properties_mali_exynos9820, deviceID);
++            RETURN(cvk_device_properties_mali_exynos9820, deviceID, driverID);
+         } else if (strcmp(soc, "exynos990") == 0) {
+-            RETURN(cvk_device_properties_mali_exynos990, deviceID);
++            RETURN(cvk_device_properties_mali_exynos990, deviceID, driverID);
+         } else {
+             cvk_warn("Unrecognized 'ro.hardware' value '%s', some device "
+                      "properties will be incorrect.",
+@@ -282,7 +290,7 @@ std::unique_ptr<cvk_device_properties> create_cvk_device_properties(
+         cvk_warn("Unrecognized Mali device, some device properties will be "
+                  "incorrect.");
+ #endif
+-        RETURN(cvk_device_properties_mali, deviceID);
++        RETURN(cvk_device_properties_mali, deviceID, driverID);
+     } else if (strcmp(name, "Adreno (TM) 615") == 0) {
+         RETURN(cvk_device_properties_adreno_615);
+     } else if (strcmp(name, "Adreno (TM) 620") == 0) {
+diff --git a/src/kernel.hpp b/src/kernel.hpp
+index 43b9a25..c97151a 100644
+--- a/src/kernel.hpp
++++ b/src/kernel.hpp
+@@ -194,11 +194,7 @@ struct cvk_kernel_argument_values {
+           m_descriptor_sets_refcount(0) {}
+ 
+     ~cvk_kernel_argument_values() {
+-        for (auto ds : m_descriptor_sets) {
+-            if (ds != VK_NULL_HANDLE) {
+-                m_entry_point->free_descriptor_set(ds);
+-            }
+-        }
++        m_entry_point->free_descriptor_sets(m_descriptor_sets);
+     }
+ 
+     static std::shared_ptr<cvk_kernel_argument_values>
+@@ -385,12 +381,7 @@ struct cvk_kernel_argument_values {
+         std::lock_guard<std::mutex> lock(m_lock);
+         if (--m_descriptor_sets_refcount == 0) {
+             m_is_enqueued = false;
+-            for (auto& ds : m_descriptor_sets) {
+-                if (ds != VK_NULL_HANDLE) {
+-                    m_entry_point->free_descriptor_set(ds);
+-                    ds = VK_NULL_HANDLE;
+-                }
+-            }
++            m_entry_point->free_descriptor_sets(m_descriptor_sets);
+         }
+     }
+ 
+@@ -437,7 +428,6 @@ private:
+     std::vector<bool> m_args_set;
+ 
+     std::unique_ptr<cvk_buffer> m_pod_buffer;
+-    std::array<VkDescriptorSet, spir_binary::MAX_DESCRIPTOR_SETS>
+-        m_descriptor_sets;
++    cvk_descriptor_set_array m_descriptor_sets;
+     uint32_t m_descriptor_sets_refcount;
+ };
+diff --git a/src/program.cpp b/src/program.cpp
+index 9b27447..cfb7fc2 100644
+--- a/src/program.cpp
++++ b/src/program.cpp
+@@ -2269,6 +2269,16 @@ bool cvk_entry_point::allocate_descriptor_sets(VkDescriptorSet* ds) {
+ 
+     std::lock_guard<std::mutex> lock(m_descriptor_pool_lock);
+ 
++    if (m_device->reuse_descriptor_set() && !m_descriptor_sets_array.empty()) {
++        cvk_descriptor_set_array descriptor_sets =
++            m_descriptor_sets_array.back();
++        m_descriptor_sets_array.pop_back();
++        for (unsigned i = 0; i < descriptor_sets.size(); i++) {
++            ds[i] = descriptor_sets[i];
++        }
++        return true;
++    }
++
+ #if CLVK_UNIT_TESTING_ENABLED
+     if (config.force_descriptor_set_allocation_failure() &&
+         m_nb_descriptor_set_allocated + m_descriptor_set_layouts.size() >
+diff --git a/src/program.hpp b/src/program.hpp
+index 7d01858..2106631 100644
+--- a/src/program.hpp
++++ b/src/program.hpp
+@@ -428,6 +428,9 @@ using cvk_spec_constant_map = std::map<uint32_t, uint32_t>;
+ 
+ struct cvk_program;
+ 
++using cvk_descriptor_set_array =
++    std::array<VkDescriptorSet, spir_binary::MAX_DESCRIPTOR_SETS>;
++
+ class cvk_entry_point {
+ public:
+     cvk_entry_point(cvk_device* dev, cvk_program* program,
+@@ -440,6 +443,11 @@ public:
+                      m_name.c_str());
+             vkDestroyPipeline(vkdev, pipeline.second, nullptr);
+         }
++        for (auto& descriptor_sets : m_descriptor_sets_array) {
++            vkFreeDescriptorSets(m_device->vulkan_device(), m_descriptor_pool,
++                                 descriptor_sets.size(),
++                                 descriptor_sets.data());
++        }
+         if (m_descriptor_pool != VK_NULL_HANDLE) {
+             vkDestroyDescriptorPool(vkdev, m_descriptor_pool, nullptr);
+         }
+@@ -458,14 +466,23 @@ public:
+ 
+     CHECK_RETURN bool allocate_descriptor_sets(VkDescriptorSet* ds);
+ 
+-    void free_descriptor_set(VkDescriptorSet ds) {
++    void free_descriptor_sets(cvk_descriptor_set_array& descriptor_sets) {
+         TRACE_FUNCTION();
++        if (descriptor_sets == cvk_descriptor_set_array{VK_NULL_HANDLE}) {
++            return;
++        }
+         std::lock_guard<std::mutex> lock(m_descriptor_pool_lock);
+-        vkFreeDescriptorSets(m_device->vulkan_device(), m_descriptor_pool, 1,
+-                             &ds);
+-        m_nb_descriptor_set_allocated--;
+-        TRACE_CNT(descriptor_set_allocated_counter,
+-                  m_nb_descriptor_set_allocated);
++        if (m_device->reuse_descriptor_set()) {
++            m_descriptor_sets_array.push_back(descriptor_sets);
++        } else {
++            vkFreeDescriptorSets(m_device->vulkan_device(), m_descriptor_pool,
++                                 descriptor_sets.size(),
++                                 descriptor_sets.data());
++            m_nb_descriptor_set_allocated -= m_descriptor_set_layouts.size();
++            TRACE_CNT(descriptor_set_allocated_counter,
++                      m_nb_descriptor_set_allocated);
++        }
++        descriptor_sets = cvk_descriptor_set_array{VK_NULL_HANDLE};
+     }
+ 
+     uint32_t num_set_layouts() const { return m_descriptor_set_layouts.size(); }
+@@ -572,6 +589,8 @@ private:
+     TRACE_CNT_VAR(descriptor_set_allocated_counter);
+ 
+     bool m_first_allocation_failure;
++
++    std::vector<cvk_descriptor_set_array> m_descriptor_sets_array;
+ };
+ 
+ struct cvk_program : public _cl_program, api_object<object_magic::program> {

@@ -37,10 +37,10 @@ cc_test {
 cc_library_shared {
     name: "libclvk",
     version_script: "src/exports.map",
-    srcs: ["src/*.cpp"],
     cflags: [
         "-DCLSPV_ONLINE_COMPILER=1",
         "-DCLVK_PERFETTO_ENABLE",
+        "-DCL_ENABLE_BETA_EXTENSIONS",
         "-DCOMPILER_AVAILABLE=1",
     ],
     ldflags: ["-Wl,-Bsymbolic"],
@@ -128,6 +128,58 @@ cc_library_shared {
         "llvm-project_lib_libclangSerialization_a",
         "llvm-project_lib_libclangSupport_a",
     ],
+    generated_sources: [
+        "clvk-00-GITHUB-PR-810-improve_logging_patch_src_config_cpp",
+        "clvk-01-GITHUB-PR-809-reuse_descriptor_set_patch_src_device_properties_cpp",
+        "clvk-01-GITHUB-PR-809-reuse_descriptor_set_patch_src_program_cpp",
+        "clvk-02-GITHUB-PR-808-timeline_semaphore_patch_src_semaphore_cpp",
+        "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_api_cpp",
+        "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_command_cpp",
+        "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_device_cpp",
+        "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_event_cpp",
+        "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_log_cpp",
+        "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_memory_cpp",
+        "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_queue_cpp",
+        "src_context_cpp",
+        "src_image_format_cpp",
+        "src_init_cpp",
+        "src_kernel_cpp",
+        "src_printf_cpp",
+        "src_queue_controller_cpp",
+        "src_sha1_cpp",
+        "src_tracing_cpp",
+        "src_unit_cpp",
+        "src_utils_cpp",
+    ],
+    generated_headers: [
+        "clvk-00-GITHUB-PR-810-improve_logging_patch_src_config_hpp",
+        "clvk-00-GITHUB-PR-810-improve_logging_patch_src_device_properties_hpp",
+        "clvk-01-GITHUB-PR-809-reuse_descriptor_set_patch_src_kernel_hpp",
+        "clvk-01-GITHUB-PR-809-reuse_descriptor_set_patch_src_program_hpp",
+        "clvk-02-GITHUB-PR-808-timeline_semaphore_patch_src_device_hpp",
+        "clvk-02-GITHUB-PR-808-timeline_semaphore_patch_src_semaphore_hpp",
+        "clvk-02-GITHUB-PR-808-timeline_semaphore_patch_src_vkutils_hpp",
+        "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_CMakeLists_txt",
+        "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_command_hpp",
+        "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_config_def",
+        "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_event_hpp",
+        "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_icd_hpp",
+        "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_memory_hpp",
+        "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_objects_hpp",
+        "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_queue_hpp",
+        "src_cl_headers_hpp",
+        "src_context_hpp",
+        "src_image_format_hpp",
+        "src_init_hpp",
+        "src_log_hpp",
+        "src_printf_hpp",
+        "src_queue_controller_hpp",
+        "src_sha1_hpp",
+        "src_timing_hpp",
+        "src_tracing_hpp",
+        "src_unit_hpp",
+        "src_utils_hpp",
+    ],
     soc_specific: true,
     header_libs: ["OpenCL-Headers"],
 }
@@ -153,6 +205,605 @@ cc_test {
         "SPIRV-Headers-includes",
         "vulkan_headers",
     ],
+}
+
+cc_genrule {
+    name: "clvk-00-GITHUB-PR-810-improve_logging_patch_src_api_cpp",
+    cmd: "cp $(location src/api.cpp) . && patch -i $(location android/patches/clvk-00-GITHUB-PR-810-improve_logging.patch/src/api.cpp/patch) && cp api.cpp $(out)",
+    srcs: [
+        "android/patches/clvk-00-GITHUB-PR-810-improve_logging.patch/src/api.cpp/patch",
+        "src/api.cpp",
+    ],
+    out: ["api.cpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-00-GITHUB-PR-810-improve_logging_patch_src_config_cpp",
+    cmd: "cp $(location src/config.cpp) . && patch -i $(location android/patches/clvk-00-GITHUB-PR-810-improve_logging.patch/src/config.cpp/patch) && cp config.cpp $(out)",
+    srcs: [
+        "android/patches/clvk-00-GITHUB-PR-810-improve_logging.patch/src/config.cpp/patch",
+        "src/config.cpp",
+    ],
+    out: ["config.cpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-00-GITHUB-PR-810-improve_logging_patch_src_device_properties_hpp",
+    cmd: "cp $(location src/device_properties.hpp) . && patch -i $(location android/patches/clvk-00-GITHUB-PR-810-improve_logging.patch/src/device_properties.hpp/patch) && cp device_properties.hpp $(out)",
+    srcs: [
+        "android/patches/clvk-00-GITHUB-PR-810-improve_logging.patch/src/device_properties.hpp/patch",
+        "src/device_properties.hpp",
+    ],
+    out: ["device_properties.hpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-00-GITHUB-PR-810-improve_logging_patch_src_device_cpp",
+    cmd: "cp $(location src/device.cpp) . && patch -i $(location android/patches/clvk-00-GITHUB-PR-810-improve_logging.patch/src/device.cpp/patch) && cp device.cpp $(out)",
+    srcs: [
+        "android/patches/clvk-00-GITHUB-PR-810-improve_logging.patch/src/device.cpp/patch",
+        "src/device.cpp",
+    ],
+    out: ["device.cpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-00-GITHUB-PR-810-improve_logging_patch_src_device_properties_cpp",
+    cmd: "cp $(location src/device_properties.cpp) . && patch -i $(location android/patches/clvk-00-GITHUB-PR-810-improve_logging.patch/src/device_properties.cpp/patch) && cp device_properties.cpp $(out)",
+    srcs: [
+        "android/patches/clvk-00-GITHUB-PR-810-improve_logging.patch/src/device_properties.cpp/patch",
+        "src/device_properties.cpp",
+    ],
+    out: ["device_properties.cpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-00-GITHUB-PR-810-improve_logging_patch_src_config_hpp",
+    cmd: "cp $(location src/config.hpp) . && patch -i $(location android/patches/clvk-00-GITHUB-PR-810-improve_logging.patch/src/config.hpp/patch) && cp config.hpp $(out)",
+    srcs: [
+        "android/patches/clvk-00-GITHUB-PR-810-improve_logging.patch/src/config.hpp/patch",
+        "src/config.hpp",
+    ],
+    out: ["config.hpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-00-GITHUB-PR-810-improve_logging_patch_src_device_hpp",
+    cmd: "cp $(location src/device.hpp) . && patch -i $(location android/patches/clvk-00-GITHUB-PR-810-improve_logging.patch/src/device.hpp/patch) && cp device.hpp $(out)",
+    srcs: [
+        "android/patches/clvk-00-GITHUB-PR-810-improve_logging.patch/src/device.hpp/patch",
+        "src/device.hpp",
+    ],
+    out: ["device.hpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-00-GITHUB-PR-810-improve_logging_patch_src_config_def",
+    cmd: "cp $(location src/config.def) . && patch -i $(location android/patches/clvk-00-GITHUB-PR-810-improve_logging.patch/src/config.def/patch) && cp config.def $(out)",
+    srcs: [
+        "android/patches/clvk-00-GITHUB-PR-810-improve_logging.patch/src/config.def/patch",
+        "src/config.def",
+    ],
+    out: ["config.def"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-01-GITHUB-PR-809-reuse_descriptor_set_patch_src_program_hpp",
+    cmd: "cp $(location src/program.hpp) . && patch -i $(location android/patches/clvk-01-GITHUB-PR-809-reuse_descriptor_set.patch/src/program.hpp/patch) && cp program.hpp $(out)",
+    srcs: [
+        "android/patches/clvk-01-GITHUB-PR-809-reuse_descriptor_set.patch/src/program.hpp/patch",
+        "src/program.hpp",
+    ],
+    out: ["program.hpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-01-GITHUB-PR-809-reuse_descriptor_set_patch_src_kernel_hpp",
+    cmd: "cp $(location src/kernel.hpp) . && patch -i $(location android/patches/clvk-01-GITHUB-PR-809-reuse_descriptor_set.patch/src/kernel.hpp/patch) && cp kernel.hpp $(out)",
+    srcs: [
+        "android/patches/clvk-01-GITHUB-PR-809-reuse_descriptor_set.patch/src/kernel.hpp/patch",
+        "src/kernel.hpp",
+    ],
+    out: ["kernel.hpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-01-GITHUB-PR-809-reuse_descriptor_set_patch_src_program_cpp",
+    cmd: "cp $(location src/program.cpp) . && patch -i $(location android/patches/clvk-01-GITHUB-PR-809-reuse_descriptor_set.patch/src/program.cpp/patch) && cp program.cpp $(out)",
+    srcs: [
+        "android/patches/clvk-01-GITHUB-PR-809-reuse_descriptor_set.patch/src/program.cpp/patch",
+        "src/program.cpp",
+    ],
+    out: ["program.cpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-01-GITHUB-PR-809-reuse_descriptor_set_patch_src_device_properties_cpp",
+    cmd: "cp $(location :clvk-00-GITHUB-PR-810-improve_logging_patch_src_device_properties_cpp) . && patch -i $(location android/patches/clvk-01-GITHUB-PR-809-reuse_descriptor_set.patch/src/device_properties.cpp/patch) && cp device_properties.cpp $(out)",
+    srcs: [
+        ":clvk-00-GITHUB-PR-810-improve_logging_patch_src_device_properties_cpp",
+        "android/patches/clvk-01-GITHUB-PR-809-reuse_descriptor_set.patch/src/device_properties.cpp/patch",
+    ],
+    out: ["device_properties.cpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-01-GITHUB-PR-809-reuse_descriptor_set_patch_src_device_hpp",
+    cmd: "cp $(location :clvk-00-GITHUB-PR-810-improve_logging_patch_src_device_hpp) . && patch -i $(location android/patches/clvk-01-GITHUB-PR-809-reuse_descriptor_set.patch/src/device.hpp/patch) && cp device.hpp $(out)",
+    srcs: [
+        ":clvk-00-GITHUB-PR-810-improve_logging_patch_src_device_hpp",
+        "android/patches/clvk-01-GITHUB-PR-809-reuse_descriptor_set.patch/src/device.hpp/patch",
+    ],
+    out: ["device.hpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-01-GITHUB-PR-809-reuse_descriptor_set_patch_src_config_def",
+    cmd: "cp $(location :clvk-00-GITHUB-PR-810-improve_logging_patch_src_config_def) . && patch -i $(location android/patches/clvk-01-GITHUB-PR-809-reuse_descriptor_set.patch/src/config.def/patch) && cp config.def $(out)",
+    srcs: [
+        ":clvk-00-GITHUB-PR-810-improve_logging_patch_src_config_def",
+        "android/patches/clvk-01-GITHUB-PR-809-reuse_descriptor_set.patch/src/config.def/patch",
+    ],
+    out: ["config.def"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-02-GITHUB-PR-808-timeline_semaphore_patch_src_device_cpp",
+    cmd: "cp $(location :clvk-00-GITHUB-PR-810-improve_logging_patch_src_device_cpp) . && patch -i $(location android/patches/clvk-02-GITHUB-PR-808-timeline_semaphore.patch/src/device.cpp/patch) && cp device.cpp $(out)",
+    srcs: [
+        ":clvk-00-GITHUB-PR-810-improve_logging_patch_src_device_cpp",
+        "android/patches/clvk-02-GITHUB-PR-808-timeline_semaphore.patch/src/device.cpp/patch",
+    ],
+    out: ["device.cpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-02-GITHUB-PR-808-timeline_semaphore_patch_src_queue_cpp",
+    cmd: "cp $(location src/queue.cpp) . && patch -i $(location android/patches/clvk-02-GITHUB-PR-808-timeline_semaphore.patch/src/queue.cpp/patch) && cp queue.cpp $(out)",
+    srcs: [
+        "android/patches/clvk-02-GITHUB-PR-808-timeline_semaphore.patch/src/queue.cpp/patch",
+        "src/queue.cpp",
+    ],
+    out: ["queue.cpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-02-GITHUB-PR-808-timeline_semaphore_patch_src_queue_hpp",
+    cmd: "cp $(location src/queue.hpp) . && patch -i $(location android/patches/clvk-02-GITHUB-PR-808-timeline_semaphore.patch/src/queue.hpp/patch) && cp queue.hpp $(out)",
+    srcs: [
+        "android/patches/clvk-02-GITHUB-PR-808-timeline_semaphore.patch/src/queue.hpp/patch",
+        "src/queue.hpp",
+    ],
+    out: ["queue.hpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-02-GITHUB-PR-808-timeline_semaphore_patch_src_semaphore_hpp",
+    cmd: "cp $(location src/semaphore.hpp) . && patch -i $(location android/patches/clvk-02-GITHUB-PR-808-timeline_semaphore.patch/src/semaphore.hpp/patch) && cp semaphore.hpp $(out)",
+    srcs: [
+        "android/patches/clvk-02-GITHUB-PR-808-timeline_semaphore.patch/src/semaphore.hpp/patch",
+        "src/semaphore.hpp",
+    ],
+    out: ["semaphore.hpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-02-GITHUB-PR-808-timeline_semaphore_patch_src_event_hpp",
+    cmd: "cp $(location src/event.hpp) . && patch -i $(location android/patches/clvk-02-GITHUB-PR-808-timeline_semaphore.patch/src/event.hpp/patch) && cp event.hpp $(out)",
+    srcs: [
+        "android/patches/clvk-02-GITHUB-PR-808-timeline_semaphore.patch/src/event.hpp/patch",
+        "src/event.hpp",
+    ],
+    out: ["event.hpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-02-GITHUB-PR-808-timeline_semaphore_patch_src_device_hpp",
+    cmd: "cp $(location :clvk-01-GITHUB-PR-809-reuse_descriptor_set_patch_src_device_hpp) . && patch -i $(location android/patches/clvk-02-GITHUB-PR-808-timeline_semaphore.patch/src/device.hpp/patch) && cp device.hpp $(out)",
+    srcs: [
+        ":clvk-01-GITHUB-PR-809-reuse_descriptor_set_patch_src_device_hpp",
+        "android/patches/clvk-02-GITHUB-PR-808-timeline_semaphore.patch/src/device.hpp/patch",
+    ],
+    out: ["device.hpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-02-GITHUB-PR-808-timeline_semaphore_patch_src_config_def",
+    cmd: "cp $(location :clvk-01-GITHUB-PR-809-reuse_descriptor_set_patch_src_config_def) . && patch -i $(location android/patches/clvk-02-GITHUB-PR-808-timeline_semaphore.patch/src/config.def/patch) && cp config.def $(out)",
+    srcs: [
+        ":clvk-01-GITHUB-PR-809-reuse_descriptor_set_patch_src_config_def",
+        "android/patches/clvk-02-GITHUB-PR-808-timeline_semaphore.patch/src/config.def/patch",
+    ],
+    out: ["config.def"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-02-GITHUB-PR-808-timeline_semaphore_patch_src_semaphore_cpp",
+    cmd: "cp $(location src/semaphore.cpp) . && patch -i $(location android/patches/clvk-02-GITHUB-PR-808-timeline_semaphore.patch/src/semaphore.cpp/patch) && cp semaphore.cpp $(out)",
+    srcs: [
+        "android/patches/clvk-02-GITHUB-PR-808-timeline_semaphore.patch/src/semaphore.cpp/patch",
+        "src/semaphore.cpp",
+    ],
+    out: ["semaphore.cpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-02-GITHUB-PR-808-timeline_semaphore_patch_src_event_cpp",
+    cmd: "cp $(location src/event.cpp) . && patch -i $(location android/patches/clvk-02-GITHUB-PR-808-timeline_semaphore.patch/src/event.cpp/patch) && cp event.cpp $(out)",
+    srcs: [
+        "android/patches/clvk-02-GITHUB-PR-808-timeline_semaphore.patch/src/event.cpp/patch",
+        "src/event.cpp",
+    ],
+    out: ["event.cpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-02-GITHUB-PR-808-timeline_semaphore_patch_src_vkutils_hpp",
+    cmd: "cp $(location src/vkutils.hpp) . && patch -i $(location android/patches/clvk-02-GITHUB-PR-808-timeline_semaphore.patch/src/vkutils.hpp/patch) && cp vkutils.hpp $(out)",
+    srcs: [
+        "android/patches/clvk-02-GITHUB-PR-808-timeline_semaphore.patch/src/vkutils.hpp/patch",
+        "src/vkutils.hpp",
+    ],
+    out: ["vkutils.hpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_api_cpp",
+    cmd: "cp $(location :clvk-00-GITHUB-PR-810-improve_logging_patch_src_api_cpp) . && patch -i $(location android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/api.cpp/patch) && cp api.cpp $(out)",
+    srcs: [
+        ":clvk-00-GITHUB-PR-810-improve_logging_patch_src_api_cpp",
+        "android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/api.cpp/patch",
+    ],
+    out: ["api.cpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_device_cpp",
+    cmd: "cp $(location :clvk-02-GITHUB-PR-808-timeline_semaphore_patch_src_device_cpp) . && patch -i $(location android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/device.cpp/patch) && cp device.cpp $(out)",
+    srcs: [
+        ":clvk-02-GITHUB-PR-808-timeline_semaphore_patch_src_device_cpp",
+        "android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/device.cpp/patch",
+    ],
+    out: ["device.cpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_log_cpp",
+    cmd: "cp $(location src/log.cpp) . && patch -i $(location android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/log.cpp/patch) && cp log.cpp $(out)",
+    srcs: [
+        "android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/log.cpp/patch",
+        "src/log.cpp",
+    ],
+    out: ["log.cpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_queue_cpp",
+    cmd: "cp $(location :clvk-02-GITHUB-PR-808-timeline_semaphore_patch_src_queue_cpp) . && patch -i $(location android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/queue.cpp/patch) && cp queue.cpp $(out)",
+    srcs: [
+        ":clvk-02-GITHUB-PR-808-timeline_semaphore_patch_src_queue_cpp",
+        "android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/queue.cpp/patch",
+    ],
+    out: ["queue.cpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_memory_hpp",
+    cmd: "cp $(location src/memory.hpp) . && patch -i $(location android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/memory.hpp/patch) && cp memory.hpp $(out)",
+    srcs: [
+        "android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/memory.hpp/patch",
+        "src/memory.hpp",
+    ],
+    out: ["memory.hpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_CMakeLists_txt",
+    cmd: "cp $(location src/CMakeLists.txt) . && patch -i $(location android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/CMakeLists.txt/patch) && cp CMakeLists.txt $(out)",
+    srcs: [
+        "android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/CMakeLists.txt/patch",
+        "src/CMakeLists.txt",
+    ],
+    out: ["CMakeLists.txt"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_memory_cpp",
+    cmd: "cp $(location src/memory.cpp) . && patch -i $(location android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/memory.cpp/patch) && cp memory.cpp $(out)",
+    srcs: [
+        "android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/memory.cpp/patch",
+        "src/memory.cpp",
+    ],
+    out: ["memory.cpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_command_hpp",
+    cmd: "patch -i $(location android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/command.hpp/patch) && cp command.hpp $(out)",
+    srcs: ["android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/command.hpp/patch"],
+    out: ["command.hpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_command_cpp",
+    cmd: "patch -i $(location android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/command.cpp/patch) && cp command.cpp $(out)",
+    srcs: ["android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/command.cpp/patch"],
+    out: ["command.cpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_queue_hpp",
+    cmd: "cp $(location :clvk-02-GITHUB-PR-808-timeline_semaphore_patch_src_queue_hpp) . && patch -i $(location android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/queue.hpp/patch) && cp queue.hpp $(out)",
+    srcs: [
+        ":clvk-02-GITHUB-PR-808-timeline_semaphore_patch_src_queue_hpp",
+        "android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/queue.hpp/patch",
+    ],
+    out: ["queue.hpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_event_hpp",
+    cmd: "cp $(location :clvk-02-GITHUB-PR-808-timeline_semaphore_patch_src_event_hpp) . && patch -i $(location android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/event.hpp/patch) && cp event.hpp $(out)",
+    srcs: [
+        ":clvk-02-GITHUB-PR-808-timeline_semaphore_patch_src_event_hpp",
+        "android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/event.hpp/patch",
+    ],
+    out: ["event.hpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_config_def",
+    cmd: "cp $(location :clvk-02-GITHUB-PR-808-timeline_semaphore_patch_src_config_def) . && patch -i $(location android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/config.def/patch) && cp config.def $(out)",
+    srcs: [
+        ":clvk-02-GITHUB-PR-808-timeline_semaphore_patch_src_config_def",
+        "android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/config.def/patch",
+    ],
+    out: ["config.def"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_event_cpp",
+    cmd: "cp $(location :clvk-02-GITHUB-PR-808-timeline_semaphore_patch_src_event_cpp) . && patch -i $(location android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/event.cpp/patch) && cp event.cpp $(out)",
+    srcs: [
+        ":clvk-02-GITHUB-PR-808-timeline_semaphore_patch_src_event_cpp",
+        "android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/event.cpp/patch",
+    ],
+    out: ["event.cpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_icd_hpp",
+    cmd: "cp $(location src/icd.hpp) . && patch -i $(location android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/icd.hpp/patch) && cp icd.hpp $(out)",
+    srcs: [
+        "android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/icd.hpp/patch",
+        "src/icd.hpp",
+    ],
+    out: ["icd.hpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "clvk-03-GITHUB-PR-807-cl_khr_command_buffer_patch_src_objects_hpp",
+    cmd: "cp $(location src/objects.hpp) . && patch -i $(location android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/objects.hpp/patch) && cp objects.hpp $(out)",
+    srcs: [
+        "android/patches/clvk-03-GITHUB-PR-807-cl_khr_command_buffer.patch/src/objects.hpp/patch",
+        "src/objects.hpp",
+    ],
+    out: ["objects.hpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "src_printf_cpp",
+    cmd: "cp $(in) $(out)",
+    srcs: ["src/printf.cpp"],
+    out: ["printf.cpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "src_utils_cpp",
+    cmd: "cp $(in) $(out)",
+    srcs: ["src/utils.cpp"],
+    out: ["utils.cpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "src_unit_cpp",
+    cmd: "cp $(in) $(out)",
+    srcs: ["src/unit.cpp"],
+    out: ["unit.cpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "src_sha1_cpp",
+    cmd: "cp $(in) $(out)",
+    srcs: ["src/sha1.cpp"],
+    out: ["sha1.cpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "src_kernel_cpp",
+    cmd: "cp $(in) $(out)",
+    srcs: ["src/kernel.cpp"],
+    out: ["kernel.cpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "src_context_cpp",
+    cmd: "cp $(in) $(out)",
+    srcs: ["src/context.cpp"],
+    out: ["context.cpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "src_tracing_cpp",
+    cmd: "cp $(in) $(out)",
+    srcs: ["src/tracing.cpp"],
+    out: ["tracing.cpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "src_image_format_cpp",
+    cmd: "cp $(in) $(out)",
+    srcs: ["src/image_format.cpp"],
+    out: ["image_format.cpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "src_queue_controller_cpp",
+    cmd: "cp $(in) $(out)",
+    srcs: ["src/queue_controller.cpp"],
+    out: ["queue_controller.cpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "src_init_cpp",
+    cmd: "cp $(in) $(out)",
+    srcs: ["src/init.cpp"],
+    out: ["init.cpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "src_init_hpp",
+    cmd: "cp $(in) $(out)",
+    srcs: ["src/init.hpp"],
+    out: ["init.hpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "src_context_hpp",
+    cmd: "cp $(in) $(out)",
+    srcs: ["src/context.hpp"],
+    out: ["context.hpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "src_log_hpp",
+    cmd: "cp $(in) $(out)",
+    srcs: ["src/log.hpp"],
+    out: ["log.hpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "src_printf_hpp",
+    cmd: "cp $(in) $(out)",
+    srcs: ["src/printf.hpp"],
+    out: ["printf.hpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "src_image_format_hpp",
+    cmd: "cp $(in) $(out)",
+    srcs: ["src/image_format.hpp"],
+    out: ["image_format.hpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "src_sha1_hpp",
+    cmd: "cp $(in) $(out)",
+    srcs: ["src/sha1.hpp"],
+    out: ["sha1.hpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "src_cl_headers_hpp",
+    cmd: "cp $(in) $(out)",
+    srcs: ["src/cl_headers.hpp"],
+    out: ["cl_headers.hpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "src_timing_hpp",
+    cmd: "cp $(in) $(out)",
+    srcs: ["src/timing.hpp"],
+    out: ["timing.hpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "src_unit_hpp",
+    cmd: "cp $(in) $(out)",
+    srcs: ["src/unit.hpp"],
+    out: ["unit.hpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "src_queue_controller_hpp",
+    cmd: "cp $(in) $(out)",
+    srcs: ["src/queue_controller.hpp"],
+    out: ["queue_controller.hpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "src_tracing_hpp",
+    cmd: "cp $(in) $(out)",
+    srcs: ["src/tracing.hpp"],
+    out: ["tracing.hpp"],
+    soc_specific: true,
+}
+
+cc_genrule {
+    name: "src_utils_hpp",
+    cmd: "cp $(in) $(out)",
+    srcs: ["src/utils.hpp"],
+    out: ["utils.hpp"],
+    soc_specific: true,
 }
 
 cc_genrule {
