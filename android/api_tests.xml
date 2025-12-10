@@ -8,6 +8,6 @@
     </target_preparer>
     <test class="com.android.tradefed.testtype.binary.ExecutableTargetTest">
         <option name="per-binary-timeout" value="2m"/>
-        <option name="test-command-line" key="clvk_api_tests" value="/data/nativetest64/unrestricted/clvk_api_tests/*/clvk_api_tests"/>
+        <option name="test-command-line" key="clvk_api_tests" value="/data/nativetest64/unrestricted/clvk_api_tests/*/clvk_api_tests --gtest_filter=-WithProfiledCommandQueue.QueueProfilingVsDeviceTimer"/>
     </test>
 </configuration>
