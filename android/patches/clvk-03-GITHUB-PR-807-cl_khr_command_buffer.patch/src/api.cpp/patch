@@ -1,5 +1,5 @@
 diff --git a/src/api.cpp b/src/api.cpp
-index 9987566..808a2d0 100644
+index 6cde420..0bc5287 100644
 --- a/src/api.cpp
 +++ b/src/api.cpp
 @@ -13,6 +13,7 @@
@@ -110,7 +110,7 @@ index 9987566..808a2d0 100644
      case CL_DEVICE_SUB_GROUP_SIZES_INTEL:
          if (device->supports_subgroup_size_selection()) {
              uint32_t size = device->min_sub_group_size();
-@@ -1263,7 +1314,8 @@ cl_event CLVK_API_CALL clCreateUserEvent(cl_context context,
+@@ -1285,7 +1336,8 @@ cl_event CLVK_API_CALL clCreateUserEvent(cl_context context,
          }
      }
  
@@ -120,7 +120,7 @@ index 9987566..808a2d0 100644
  
      if (errcode_ret != nullptr) {
          *errcode_ret = CL_SUCCESS;
-@@ -5408,6 +5460,19 @@ cl_int CLVK_API_CALL clEnqueueFillImage(
+@@ -5450,6 +5502,19 @@ cl_int CLVK_API_CALL clEnqueueFillImage(
      // Create image map command
      std::array<size_t, 3> reg = {region[0], region[1], region[2]};
  
@@ -140,7 +140,7 @@ index 9987566..808a2d0 100644
      void* map_ptr;
      _cl_event* evt_map;
      size_t image_row_pitch, image_slice_pitch;
-@@ -6577,3 +6642,825 @@ cl_int CLVK_API_CALL clGetKernelSuggestedLocalWorkSizeKHR(
+@@ -6620,3 +6685,825 @@ cl_int CLVK_API_CALL clGetKernelSuggestedLocalWorkSizeKHR(
  
      return CL_SUCCESS;
  }

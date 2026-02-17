@@ -1,8 +1,8 @@
 diff --git a/src/device.hpp b/src/device.hpp
-index 23006dd..b9fc43c 100644
+index 946ec9d..e484e97 100644
 --- a/src/device.hpp
 +++ b/src/device.hpp
-@@ -723,6 +723,10 @@ struct cvk_device : public _cl_device_id,
+@@ -725,6 +725,10 @@ struct cvk_device : public _cl_device_id,
          return m_clvk_properties->keep_memory_allocations_mapped();
      }
  
@@ -10,6 +10,6 @@ index 23006dd..b9fc43c 100644
 +        return m_clvk_properties->reuse_descriptor_set();
 +    }
 +
- private:
-     std::string version_desc() const {
-         std::string ret = "CLVK on Vulkan v";
+     TRACE_TRACK_FCT(device_track,
+                     "clvk-device_" + std::to_string((uintptr_t)this))
+ 

@@ -12,10 +12,10 @@ index bf54c7b..f63fa6f 100644
  // Logging
  //
 diff --git a/src/device.hpp b/src/device.hpp
-index 23006dd..b9fc43c 100644
+index 946ec9d..e484e97 100644
 --- a/src/device.hpp
 +++ b/src/device.hpp
-@@ -723,6 +723,10 @@ struct cvk_device : public _cl_device_id,
+@@ -725,6 +725,10 @@ struct cvk_device : public _cl_device_id,
          return m_clvk_properties->keep_memory_allocations_mapped();
      }
  
@@ -23,11 +23,11 @@ index 23006dd..b9fc43c 100644
 +        return m_clvk_properties->reuse_descriptor_set();
 +    }
 +
- private:
-     std::string version_desc() const {
-         std::string ret = "CLVK on Vulkan v";
+     TRACE_TRACK_FCT(device_track,
+                     "clvk-device_" + std::to_string((uintptr_t)this))
+ 
 diff --git a/src/device_properties.cpp b/src/device_properties.cpp
-index 18cc834..9ade19e 100644
+index f10b0d4..04a7826 100644
 --- a/src/device_properties.cpp
 +++ b/src/device_properties.cpp
 @@ -27,8 +27,9 @@ struct cvk_device_properties_mali : public cvk_device_properties_virtual {
@@ -140,10 +140,10 @@ index 43b9a25..c97151a 100644
      uint32_t m_descriptor_sets_refcount;
  };
 diff --git a/src/program.cpp b/src/program.cpp
-index 9b27447..cfb7fc2 100644
+index 29c5c57..35c156e 100644
 --- a/src/program.cpp
 +++ b/src/program.cpp
-@@ -2269,6 +2269,16 @@ bool cvk_entry_point::allocate_descriptor_sets(VkDescriptorSet* ds) {
+@@ -2270,6 +2270,16 @@ bool cvk_entry_point::allocate_descriptor_sets(VkDescriptorSet* ds) {
  
      std::lock_guard<std::mutex> lock(m_descriptor_pool_lock);
  

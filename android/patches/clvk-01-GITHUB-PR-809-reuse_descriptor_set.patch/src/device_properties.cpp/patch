@@ -1,5 +1,5 @@
 diff --git a/src/device_properties.cpp b/src/device_properties.cpp
-index 18cc834..9ade19e 100644
+index f10b0d4..04a7826 100644
 --- a/src/device_properties.cpp
 +++ b/src/device_properties.cpp
 @@ -27,8 +27,9 @@ struct cvk_device_properties_mali : public cvk_device_properties_virtual {
