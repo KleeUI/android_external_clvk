@@ -1,8 +1,8 @@
 diff --git a/src/device.cpp b/src/device.cpp
-index ba140b3..0563a2c 100644
+index 771fd60..320684d 100644
 --- a/src/device.cpp
 +++ b/src/device.cpp
-@@ -120,37 +120,6 @@ void cvk_device::init_clvk_runtime_behaviors() {
+@@ -121,37 +121,6 @@ void cvk_device::init_clvk_runtime_behaviors() {
      m_clvk_properties = create_cvk_device_properties(
          m_properties.deviceName, m_properties.vendorID, m_properties.deviceID,
          m_properties.driverVersion, m_driver_properties.driverID);
@@ -40,7 +40,7 @@ index ba140b3..0563a2c 100644
  }
  
  void cvk_device::init_driver_behaviors() {
-@@ -536,13 +505,14 @@ void cvk_device::init_compiler_options() {
+@@ -537,13 +506,14 @@ void cvk_device::init_compiler_options() {
          m_device_compiler_options += " -decorate-nonuniform ";
      }
  
@@ -59,7 +59,7 @@ index ba140b3..0563a2c 100644
          m_device_compiler_options += " -physical-storage-buffers ";
      }
  
-@@ -551,24 +521,8 @@ void cvk_device::init_compiler_options() {
+@@ -552,24 +522,8 @@ void cvk_device::init_compiler_options() {
      }
  
      // Builtin options
@@ -86,7 +86,7 @@ index ba140b3..0563a2c 100644
  
      std::string builtin_list = "";
      for (const auto& builtin : native_builtins) {
-@@ -729,19 +683,7 @@ void cvk_device::build_extension_ils_list() {
+@@ -730,19 +684,7 @@ void cvk_device::build_extension_ils_list() {
              1, 0, 0, "cl_arm_integer_dot_product_accumulate_int16"));
      }
  
@@ -107,7 +107,7 @@ index ba140b3..0563a2c 100644
      for (auto& config_extension : config_extensions) {
          cl_name_version extension;
          extension.version = CL_MAKE_VERSION(0, 0, 0);
-@@ -751,8 +693,7 @@ void cvk_device::build_extension_ils_list() {
+@@ -752,8 +694,7 @@ void cvk_device::build_extension_ils_list() {
          m_extensions.push_back(extension);
      }
  

@@ -1,8 +1,8 @@
 diff --git a/src/queue.cpp b/src/queue.cpp
-index e1a406d..5199692 100644
+index 65527b4..85a9af2 100644
 --- a/src/queue.cpp
 +++ b/src/queue.cpp
-@@ -158,19 +158,19 @@ cl_int cvk_command_queue::enqueue_command_with_retry(cvk_command* cmd,
+@@ -154,19 +154,19 @@ cl_int cvk_command_queue::enqueue_command_with_retry(cvk_command* cmd,
      if (config.enqueue_command_retry_sleep_us == UINT32_MAX ||
          err != CL_OUT_OF_RESOURCES) {
          if (err != CL_SUCCESS) {
@@ -25,7 +25,7 @@ index e1a406d..5199692 100644
              return err;
          }
      }
-@@ -186,13 +186,14 @@ cl_int cvk_command_queue::enqueue_command_with_retry(cvk_command* cmd,
+@@ -182,13 +182,14 @@ cl_int cvk_command_queue::enqueue_command_with_retry(cvk_command* cmd,
          err = enqueue_command(cmd, event);
      } while (err == CL_OUT_OF_RESOURCES && m_nb_group_in_flight != 0);
      if (err != CL_SUCCESS) {
@@ -41,7 +41,7 @@ index e1a406d..5199692 100644
      cl_int err;
  
      // Enqueue data movement/consistency commands if needed
-@@ -404,7 +405,7 @@ cl_int cvk_command_group::execute_cmds(bool poll) {
+@@ -400,7 +401,7 @@ cl_int cvk_command_group::execute_cmds(bool poll) {
          // Deleting batch with many commands can take a while. Trace it to be
          // able to understand it easily.
          TRACE_BEGIN("delete_cmd");
@@ -50,7 +50,7 @@ index e1a406d..5199692 100644
          TRACE_END();
      }
      return global_status;
-@@ -643,7 +644,7 @@ void cvk_command_pool::free_command_buffer(VkCommandBuffer buf) {
+@@ -639,7 +640,7 @@ void cvk_command_pool::free_command_buffer(VkCommandBuffer buf) {
  }
  
  bool cvk_command_buffer::begin() {
@@ -59,7 +59,7 @@ index e1a406d..5199692 100644
      if (!m_queue->allocate_command_buffer(&m_command_buffer)) {
          return false;
      }
-@@ -1116,8 +1117,10 @@ cvk_command_kernel::build_batchable_inner(cvk_command_buffer& command_buffer) {
+@@ -1112,8 +1113,10 @@ cvk_command_kernel::build_batchable_inner(cvk_command_buffer& command_buffer) {
      // TODO CL_INVALID_KERNEL_ARGS if the kernel argument values have not been
      // specified.
  
@@ -72,7 +72,7 @@ index e1a406d..5199692 100644
  
      // Setup descriptors
      if (!m_argument_values->setup_descriptor_sets()) {
-@@ -1272,18 +1275,19 @@ cl_int cvk_command_batchable::build(cvk_command_buffer& command_buffer) {
+@@ -1268,18 +1271,19 @@ cl_int cvk_command_batchable::build(cvk_command_buffer& command_buffer) {
      VkQueryPoolCreateInfo query_pool_create_info = {
          VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO,
          nullptr,
@@ -97,7 +97,7 @@ index e1a406d..5199692 100644
          if (res != VK_SUCCESS) {
              return CL_OUT_OF_RESOURCES;
          }
-@@ -1291,11 +1295,11 @@ cl_int cvk_command_batchable::build(cvk_command_buffer& command_buffer) {
+@@ -1287,11 +1291,11 @@ cl_int cvk_command_batchable::build(cvk_command_buffer& command_buffer) {
  
      // Sample timestamp if profiling
      if (profiling && m_queue->profiling_on_device()) {
@@ -113,7 +113,7 @@ index e1a406d..5199692 100644
      }
  
      auto err = build_batchable_inner(command_buffer);
-@@ -1306,36 +1310,13 @@ cl_int cvk_command_batchable::build(cvk_command_buffer& command_buffer) {
+@@ -1302,36 +1306,13 @@ cl_int cvk_command_batchable::build(cvk_command_buffer& command_buffer) {
      // Sample timestamp if profiling
      if (profiling && m_queue->profiling_on_device()) {
          vkCmdWriteTimestamp(command_buffer,
@@ -152,7 +152,7 @@ index e1a406d..5199692 100644
  cl_int cvk_command_batchable::do_action() {
      CVK_ASSERT(m_command_buffer);
  
-@@ -2006,3 +1987,178 @@ cvk_command_image_init::build_batchable_inner(cvk_command_buffer& cmdbuf) {
+@@ -2002,3 +1983,178 @@ cvk_command_image_init::build_batchable_inner(cvk_command_buffer& cmdbuf) {
  
      return CL_SUCCESS;
  }

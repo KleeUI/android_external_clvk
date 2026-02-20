@@ -1,8 +1,8 @@
 diff --git a/src/queue.hpp b/src/queue.hpp
-index 788cc7c..7aa286f 100644
+index 68b6930..ac57419 100644
 --- a/src/queue.hpp
 +++ b/src/queue.hpp
-@@ -417,11 +417,10 @@ protected:
+@@ -422,11 +422,10 @@ protected:
  #define CLVK_COMMAND_BATCH 0x5000
  #define CLVK_COMMAND_IMAGE_INIT 0x5001
  
@@ -16,7 +16,7 @@ index 788cc7c..7aa286f 100644
  
      virtual ~cvk_command() {
          for (auto& event : m_event_deps) {
-@@ -447,6 +446,8 @@ struct cvk_command {
+@@ -452,6 +451,8 @@ struct cvk_command {
          m_event_deps = deps;
      }
  
@@ -25,7 +25,7 @@ index 788cc7c..7aa286f 100644
      virtual bool can_be_batched() const { return false; }
  
      virtual bool is_built_before_enqueue() const { return true; }
-@@ -526,6 +527,16 @@ struct cvk_command {
+@@ -531,6 +532,16 @@ struct cvk_command {
          return CL_SUCCESS;
      }
  
@@ -42,7 +42,7 @@ index 788cc7c..7aa286f 100644
  protected:
      cl_command_type m_type;
      cvk_command_queue_holder m_queue;
-@@ -573,6 +584,11 @@ struct cvk_command_buffer_host_copy final
+@@ -578,6 +589,11 @@ struct cvk_command_buffer_host_copy final
          return {m_buffer};
      }
  
@@ -54,7 +54,7 @@ index 788cc7c..7aa286f 100644
  private:
      CHECK_RETURN cl_int do_action() override final;
  
-@@ -641,16 +657,28 @@ struct cvk_command_copy_host_buffer_rect final : public cvk_command {
+@@ -646,16 +662,28 @@ struct cvk_command_copy_host_buffer_rect final : public cvk_command {
          const size_t* region, size_t host_row_pitch, size_t host_slice_pitch,
          size_t buffer_row_pitch, size_t buffer_slice_pitch,
          size_t elem_size = 1)
@@ -88,7 +88,7 @@ index 788cc7c..7aa286f 100644
  private:
      CHECK_RETURN cl_int do_action() override final;
  
-@@ -671,6 +699,12 @@ struct cvk_command_copy_buffer final : public cvk_command {
+@@ -676,6 +704,12 @@ struct cvk_command_copy_buffer final : public cvk_command {
          return {m_src_buffer, m_dst_buffer};
      }
  
@@ -101,7 +101,7 @@ index 788cc7c..7aa286f 100644
  private:
      CHECK_RETURN cl_int do_action() override final;
  
-@@ -688,15 +722,26 @@ struct cvk_command_copy_buffer_rect final : public cvk_command {
+@@ -693,15 +727,26 @@ struct cvk_command_copy_buffer_rect final : public cvk_command {
                                   const size_t* dst_origin, const size_t* region,
                                   size_t src_row_pitch, size_t src_slice_pitch,
                                   size_t dst_row_pitch, size_t dst_slice_pitch)
@@ -131,7 +131,7 @@ index 788cc7c..7aa286f 100644
  private:
      CHECK_RETURN cl_int do_action() override final;
  
-@@ -719,6 +764,12 @@ struct cvk_command_fill_buffer final : public cvk_command_buffer_base_region {
+@@ -724,6 +769,12 @@ struct cvk_command_fill_buffer final : public cvk_command_buffer_base_region {
          return {m_buffer};
      }
  
@@ -144,7 +144,7 @@ index 788cc7c..7aa286f 100644
  private:
      CHECK_RETURN cl_int do_action() override final;
  
-@@ -729,51 +780,17 @@ private:
+@@ -734,51 +785,17 @@ private:
  
  struct cvk_command_batchable : public cvk_command {
      cvk_command_batchable(cl_command_type type, cvk_command_queue* queue)
@@ -197,7 +197,7 @@ index 788cc7c..7aa286f 100644
      CHECK_RETURN cl_int
      set_profiling_info(cl_profiling_info pinfo) override final {
          if (!m_queue->profiling_on_device()) {
-@@ -787,7 +804,7 @@ struct cvk_command_batchable : public cvk_command {
+@@ -792,7 +809,7 @@ struct cvk_command_batchable : public cvk_command {
              return m_queue->device()->update_device_host_timer();
          } else {
              CVK_ASSERT(pinfo == CL_PROFILING_COMMAND_END);
@@ -206,7 +206,7 @@ index 788cc7c..7aa286f 100644
          }
      }
  
-@@ -796,11 +813,6 @@ private:
+@@ -801,11 +818,6 @@ private:
      CHECK_RETURN cl_int do_action() override;
  
      std::unique_ptr<cvk_command_buffer> m_command_buffer;
@@ -218,7 +218,7 @@ index 788cc7c..7aa286f 100644
  };
  
  struct cvk_ndrange {
-@@ -840,8 +852,14 @@ struct cvk_command_kernel final : public cvk_command_batchable {
+@@ -845,8 +857,14 @@ struct cvk_command_kernel final : public cvk_command_batchable {
      cvk_command_kernel(cvk_command_queue* q, cvk_kernel* kernel, uint32_t dims,
                         const cvk_ndrange& ndrange)
          : cvk_command_batchable(CL_COMMAND_NDRANGE_KERNEL, q), m_kernel(kernel),
@@ -235,7 +235,7 @@ index 788cc7c..7aa286f 100644
  
      ~cvk_command_kernel() {
          if (m_argument_values) {
-@@ -866,6 +884,10 @@ struct cvk_command_kernel final : public cvk_command_batchable {
+@@ -871,6 +889,10 @@ struct cvk_command_kernel final : public cvk_command_batchable {
          return argvals->memory_objects();
      }
  
@@ -246,7 +246,7 @@ index 788cc7c..7aa286f 100644
  private:
      CHECK_RETURN cl_int do_post_action() override final;
  
-@@ -893,6 +915,15 @@ struct cvk_command_batch : public cvk_command {
+@@ -898,6 +920,15 @@ struct cvk_command_batch : public cvk_command {
      cvk_command_batch(cvk_command_queue* queue)
          : cvk_command(CLVK_COMMAND_BATCH, queue), m_submitted(false) {}
  
@@ -262,7 +262,7 @@ index 788cc7c..7aa286f 100644
      cl_int add_command(cvk_command_batchable* cmd) {
          if (!m_command_buffer) {
              // Create command buffer and start recording on first call
-@@ -911,6 +942,9 @@ struct cvk_command_batch : public cvk_command {
+@@ -916,6 +947,9 @@ struct cvk_command_batch : public cvk_command {
          cvk_debug_fn("add command %p (%s) to batch %p", cmd,
                       cl_command_type_to_string(cmd->type()), this);
          m_commands.emplace_back(cmd);
@@ -272,7 +272,7 @@ index 788cc7c..7aa286f 100644
  
          return ret;
      }
-@@ -930,50 +964,80 @@ struct cvk_command_batch : public cvk_command {
+@@ -935,50 +969,80 @@ struct cvk_command_batch : public cvk_command {
          if (m_queue->profiling_on_device()) {
              if (pinfo == CL_PROFILING_COMMAND_START) {
                  return status;
@@ -370,7 +370,7 @@ index 788cc7c..7aa286f 100644
      std::unique_ptr<cvk_command_buffer> m_command_buffer;
  };
  
-@@ -996,6 +1060,11 @@ struct cvk_command_map_buffer final : public cvk_command_buffer_base_region {
+@@ -1001,6 +1065,11 @@ struct cvk_command_map_buffer final : public cvk_command_buffer_base_region {
          return {m_buffer};
      }
  
@@ -382,7 +382,7 @@ index 788cc7c..7aa286f 100644
  private:
      CHECK_RETURN cl_int do_action() override final;
  
-@@ -1016,6 +1085,10 @@ struct cvk_command_unmap_buffer final : public cvk_command_buffer_base {
+@@ -1021,6 +1090,10 @@ struct cvk_command_unmap_buffer final : public cvk_command_buffer_base {
          return {m_buffer};
      }
  
@@ -393,7 +393,7 @@ index 788cc7c..7aa286f 100644
  private:
      CHECK_RETURN cl_int do_action() override final;
  
-@@ -1028,6 +1101,10 @@ struct cvk_command_dep : public cvk_command {
+@@ -1033,6 +1106,10 @@ struct cvk_command_dep : public cvk_command {
  
      const std::vector<cvk_mem*> memory_objects() const override { return {}; }
  
@@ -404,7 +404,7 @@ index 788cc7c..7aa286f 100644
  private:
      CHECK_RETURN cl_int do_action() override final { return CL_COMPLETE; }
  };
-@@ -1059,6 +1136,12 @@ struct cvk_command_buffer_image_copy final : public cvk_command_batchable {
+@@ -1064,6 +1141,12 @@ struct cvk_command_buffer_image_copy final : public cvk_command_batchable {
          return {m_buffer, m_image};
      }
  
@@ -417,7 +417,7 @@ index 788cc7c..7aa286f 100644
  private:
      void build_inner_image_to_buffer(cvk_command_buffer& cmdbuf,
                                       const VkBufferImageCopy& region);
-@@ -1082,6 +1165,10 @@ struct cvk_command_map_image final : public cvk_command {
+@@ -1087,6 +1170,10 @@ struct cvk_command_map_image final : public cvk_command {
          return {m_image};
      }
  
@@ -428,7 +428,7 @@ index 788cc7c..7aa286f 100644
  private:
      CHECK_RETURN cl_int do_action() override final { return CL_COMPLETE; };
  
-@@ -1101,6 +1188,10 @@ struct cvk_command_unmap_image final : public cvk_command {
+@@ -1106,6 +1193,10 @@ struct cvk_command_unmap_image final : public cvk_command {
          return {m_image};
      }
  
@@ -439,7 +439,7 @@ index 788cc7c..7aa286f 100644
  private:
      CHECK_RETURN cl_int do_action() override final;
  
-@@ -1126,6 +1217,12 @@ struct cvk_command_image_image_copy final : public cvk_command_batchable {
+@@ -1131,6 +1222,12 @@ struct cvk_command_image_image_copy final : public cvk_command_batchable {
          return {m_src_image, m_dst_image};
      }
  
@@ -452,7 +452,7 @@ index 788cc7c..7aa286f 100644
  private:
      cvk_image_holder m_src_image;
      cvk_image_holder m_dst_image;
-@@ -1145,6 +1242,11 @@ struct cvk_command_fill_image final : public cvk_command {
+@@ -1150,6 +1247,11 @@ struct cvk_command_fill_image final : public cvk_command {
  
      const std::vector<cvk_mem*> memory_objects() const override { return {}; }
  
@@ -464,7 +464,7 @@ index 788cc7c..7aa286f 100644
  private:
      CHECK_RETURN cl_int do_action() override final;
  
-@@ -1154,6 +1256,66 @@ private:
+@@ -1159,6 +1261,67 @@ private:
      std::array<size_t, 3> m_region;
  };
  
@@ -481,7 +481,8 @@ index 788cc7c..7aa286f 100644
 +                                                     (uint32_t)work_size[1],
 +                                                     (uint32_t)work_size[2]};
 +        std::array<uint32_t, 3> local_size;
-+        queue->device()->select_work_group_size(global_size, local_size);
++        queue->device()->select_work_group_size(nullptr, global_size,
++                                                local_size);
 +        m_local_size[0] = local_size[0];
 +        m_local_size[1] = local_size[1];
 +        m_local_size[2] = local_size[2];
@@ -531,7 +532,7 @@ index 788cc7c..7aa286f 100644
  struct cvk_command_image_init final : public cvk_command_batchable {
  
      cvk_command_image_init(cvk_command_queue* queue, cvk_image* image)
-@@ -1166,6 +1328,10 @@ struct cvk_command_image_init final : public cvk_command_batchable {
+@@ -1171,6 +1334,10 @@ struct cvk_command_image_init final : public cvk_command_batchable {
      build_batchable_inner(cvk_command_buffer& cmdbuf) override final;
      ~cvk_command_image_init() { m_image->discard_init_data(); }
  
